@@ -1,0 +1,36 @@
+{
+  "name": "tiny-request",
+  "version": "1.0.0",
+  "description": "reed http body, write http body, pipe http body",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha --harmony -R spec -t 5000 test/*.js",
+    "test-cov": "node --harmony node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -R dot -t 5000 test/*.js",
+    "test-travis": "node --harmony node_modules/.bin/istanbul cover node_modules/.bin/_mocha --report lcovonly -- -R dot -t 5000 test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onebook/tiny-request.git"
+  },
+  "keywords": [
+    "request",
+    "http",
+    "tiny",
+    "sdk"
+  ],
+  "author": "haoxin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/onebook/tiny-request/issues"
+  },
+  "homepage": "https://github.com/onebook/tiny-request",
+  "devDependencies": {
+    "co-body": "*",
+    "istanbul": "*",
+    "koa": "*",
+    "mocha": "*"
+  }
+}
