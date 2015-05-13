@@ -11,10 +11,11 @@
 ### usage
 
 * options: same to http.request options, add `timeout`, `source`, `body`, `dest` support
-  - timeout: type `number`
-  - source: type `filepath`|`stream`|`buffer`, will pipe to req
-  - body: http body, type `buffer`|`string`|`object`
-  - dest: pipe from the res, type `stream`|`filepath`
+  - timeout: type `{Number}`
+  - source: type `{String} - filepath`|`{Stream}`|`{Buffer}`, will pipe to req
+  - body: http body, type `{Buffer}`|`{String}`|`{Object}`
+  - dest: filepath pipe from the res, `{String}`
+  - rawBody: options pass to [raw-body](https://github.com/stream-utils/raw-body)
 
 * res: type `object`
   - status
@@ -22,9 +23,9 @@
   - body
 
 ```js
-var request = require('tiny-request');
+let request = require('tiny-request')
 
-request(options, function(err, res) {});
+let result = await request(options)
 ```
 
 ```js
@@ -34,9 +35,11 @@ request({
   method: 'PUT',
   source: __filename,
   dest: __filename + '.temp'
-}, function(err, res) {
+}).then(function(res) {
   // ...
-});
+}).catch(function(err) {
+  // ...
+})
 ```
 
 ### License

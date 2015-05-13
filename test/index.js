@@ -1,108 +1,101 @@
-'use strict';
+'use strict'
 
-var assert = require('assert'),
-  parse = require('co-body'),
-  equal = assert.deepEqual,
-  request = require('..'),
-  path = require('path'),
-  resolve = path.resolve,
-  koa = require('koa'),
-  fs = require('fs'),
-  join = path.join,
-  app = koa();
+let assert = require('assert')
+let parse = require('co-body')
+let equal = assert.deepEqual
+let request = require('..')
+let path = require('path')
+let koa = require('koa')
+let fs = require('fs')
+let join = path.join
+let app = koa()
 
-app.use(function * (next) {
-  yield * next;
+app.use(function* (next) {
+  yield * next
 
   if (this.path === '/json') {
-    this.body = yield parse(this);
-    return;
+    this.body = yield parse(this)
+    return
   }
 
   if (this.path === '/string') {
-    this.body = yield parse(this);
-    this.body = JSON.stringify(this.body);
-    return;
+    this.body = yield parse(this)
+    this.body = JSON.stringify(this.body)
+    return
   }
 
   if (this.path.startsWith('/dest')) {
-    this.body = fs.createReadStream(__filename);
-    return;
+    this.body = fs.createReadStream(__filename)
+    return
   }
 
   if (this.path === '/timeout') {
-    yield delay(10000);
-    return;
+    yield delay(10000)
+    return
   }
 
   if (this.path.startsWith('/upload')) {
-    var filepath = join(__dirname, this.path + '.temp');
+    let filepath = join(__dirname, this.path + '.temp')
 
-    yield save(this, filepath);
+    yield save(this, filepath)
 
     this.body = {
       filepath: filepath
-    };
-    return;
+    }
+    return
   }
-});
+})
 
-app.listen(3000);
+app.listen(3000)
 
 before(function() {
-  var uploadDir = join(__dirname, 'upload');
+  let uploadDir = join(__dirname, 'upload')
 
   try {
-    fs.mkdirSync(uploadDir);
+    fs.mkdirSync(uploadDir)
   } catch (e) {}
-});
+})
 
 describe('## tiny-request', function() {
   describe('# options.source', function() {
-    it('stream', function(done) {
-      request({
+    it('stream', function() {
+      return request({
         host: 'localhost',
         port: 3000,
         method: 'POST',
         path: '/upload/stream',
         source: fs.createReadStream(__filename)
-      }, function(err, res) {
-        if (err) throw err;
-        assertFileEqual(__filename, 'upload/stream.temp');
-        equal(res.status, 200);
-        done();
-      });
-    });
+      }).then(function(res) {
+        assertFileEqual(__filename, 'upload/stream.temp')
+        equal(res.status, 200)
+      })
+    })
 
-    it('buffer', function(done) {
-      request({
+    it('buffer', function() {
+      return request({
         host: 'localhost',
         port: 3000,
         method: 'POST',
         path: '/upload/buffer',
         source: new Buffer('test')
-      }, function(err, res) {
-        if (err) throw err;
-        equal(fs.readFileSync(resolve(__dirname, 'upload/buffer.temp'), 'utf8'), 'test');
-        equal(res.status, 200);
-        done();
-      });
-    });
+      }).then(function(res) {
+        equal(fs.readFileSync(path.resolve(__dirname, 'upload/buffer.temp'), 'utf8'), 'test')
+        equal(res.status, 200)
+      })
+    })
 
-    it('filepath', function(done) {
-      request({
+    it('filepath', function() {
+      return request({
         host: 'localhost',
         port: 3000,
         method: 'POST',
         path: '/upload/file',
         source: __filename
-      }, function(err, res) {
-        if (err) throw err;
-        assertFileEqual(__filename, 'upload/file.temp');
-        equal(res.status, 200);
-        done();
-      });
-    });
+      }).then(function(res) {
+        assertFileEqual(__filename, 'upload/file.temp')
+        equal(res.status, 200)
+      })
+    })
 
     it('invalid filepath', function(done) {
       request({
@@ -110,57 +103,41 @@ describe('## tiny-request', function() {
         port: 3000,
         method: 'POST',
         path: '/upload/file',
-        source: __filename + 'xx'
-      }, function(err) {
-        equal(err.code, 'ENOENT');
-        done();
-      });
-    });
-  });
+        source: path.join(__dirname, 'xxoo.js')
+      }).then(function(res) {
+        console.log(res)
+        done()
+      }).catch(function(err) {
+        equal(err.code, 'ENOENT')
+        done()
+      })
+    })
+  })
 
   describe('# options.dest', function() {
-    it('stream', function(done) {
-      var filepath = join(__dirname, 'upload/stream-dest.js');
+    it('filepath', function() {
+      let filepath = join(__dirname, 'upload/filepath-dest.js')
 
-      request({
-        host: 'localhost',
-        port: 3000,
-        method: 'GET',
-        path: '/dest/stream',
-        dest: fs.createWriteStream(filepath)
-      }, function(err, res) {
-        if (err) throw err;
-        assertFileEqual(__filename, 'upload/stream-dest.js');
-        equal(res.status, 200);
-        done();
-      });
-    });
-
-    it('filepath', function(done) {
-      var filepath = join(__dirname, 'upload/filepath-dest.js');
-
-      request({
+      return request({
         host: 'localhost',
         port: 3000,
         method: 'GET',
         path: '/dest/stream',
         dest: filepath
-      }, function(err, res) {
-        if (err) throw err;
-        assertFileEqual(__filename, 'upload/filepath-dest.js');
-        equal(res.status, 200);
-        done();
-      });
-    });
-  });
+      }).then(function(res) {
+        assertFileEqual(__filename, filepath)
+        equal(res.status, 200)
+      })
+    })
+  })
 
   describe('# options.body', function() {
-    it('json', function(done) {
-      var json = {
+    it('json', function() {
+      let json = {
         name: 'test'
-      };
+      }
 
-      request({
+      return request({
         host: 'localhost',
         port: 3000,
         body: json,
@@ -169,19 +146,17 @@ describe('## tiny-request', function() {
         headers: {
           'Content-Type': 'application/json'
         }
-      }, function(err, res) {
-        if (err) throw err;
-        equal(JSON.parse(res.body), json);
-        done();
-      });
-    });
+      }).then(function(res) {
+        equal(JSON.parse(res.body), json)
+      })
+    })
 
-    it('string', function(done) {
-      var json = {
+    it('string', function() {
+      let json = {
         name: 'test'
-      };
+      }
 
-      request({
+      return request({
         host: 'localhost',
         port: 3000,
         body: json,
@@ -190,13 +165,11 @@ describe('## tiny-request', function() {
         headers: {
           'Content-Type': 'application/json'
         }
-      }, function(err, res) {
-        if (err) throw err;
-        equal(res.body.toString(), JSON.stringify(json));
-        done();
-      });
-    });
-  });
+      }).then(function(res) {
+        equal(res.body.toString(), JSON.stringify(json))
+      })
+    })
+  })
 
   describe('# timeout', function() {
     it('408', function(done) {
@@ -205,43 +178,43 @@ describe('## tiny-request', function() {
         port: 3000,
         timeout: 100,
         path: '/timeout'
-      }, function(err) {
-        equal(err.status, 408);
-        equal(err.message, 'Request Timeout');
-        done();
-      });
-    });
-  });
-});
+      }).catch(function(err) {
+        equal(err.status, 408)
+        equal(err.message, 'Request Timeout')
+        done()
+      })
+    })
+  })
+})
 
 function assertFileEqual(path1, path2) {
-  path1 = resolve(__dirname, path1);
-  path2 = resolve(__dirname, path2);
+  path1 = path.resolve(__dirname, path1)
+  path2 = path.resolve(__dirname, path2)
 
-  var file1 = fs.readFileSync(path1, 'utf8'),
-    file2 = fs.readFileSync(path2, 'utf8');
+  let file1 = fs.readFileSync(path1, 'utf8')
+  let file2 = fs.readFileSync(path2, 'utf8')
 
-  equal(file1, file2);
+  equal(file1, file2)
 }
 
 function save(ctx, filepath) {
   return new Promise(function(resolve, reject) {
-    var dest = fs.createWriteStream(filepath);
+    let dest = fs.createWriteStream(filepath)
 
-    ctx.req.pipe(dest);
+    ctx.req.pipe(dest)
 
     dest.on('finish', function() {
-      resolve();
+      resolve()
     }).on('error', function(error) {
-      reject(error);
-    });
-  });
+      reject(error)
+    })
+  })
 }
 
 function delay(ms) {
   return new Promise(function(resolve) {
     setTimeout(function() {
-      resolve();
-    }, ms);
-  });
+      resolve()
+    }, ms)
+  })
 }

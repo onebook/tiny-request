@@ -1,6 +1,6 @@
 {
   "name": "tiny-request",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "reed http body, write http body, pipe http body",
   "main": "index.js",
   "directories": {
@@ -32,5 +32,11 @@
     "istanbul": "*",
     "koa": "*",
     "mocha": "*"
+  },
+  "dependencies": {
+    "destroy": "^1.0.3",
+    "fs-cp": "1",
+    "on-finished": "2",
+    "raw-body": "2"
   }
 }
